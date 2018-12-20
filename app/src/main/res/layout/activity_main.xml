@@ -64,31 +64,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
+        <!--摇杆-->
+        <com.gcssloop.widget.RockerView
+            android:id="@+id/rocker"
+            android:layout_gravity="bottom|start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
         <Button
             android:id="@+id/btn_up"
-            android:text="前"
+            android:text="截图/拍照"
             android:layout_gravity="center_horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <Button
-            android:id="@+id/btn_down"
-            android:text="后"
-            android:layout_gravity="bottom|center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <Button
-            android:id="@+id/btn_left"
-            android:text="左"
-            android:layout_gravity="center_vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <Button
-            android:id="@+id/btn_right"
-            android:text="右"
-            android:layout_gravity="right|center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
@@ -117,6 +103,8 @@
 
         <ImageView
             android:id="@+id/ivIcon"
+            android:src="@mipmap/ic_launcher"
+            android:layout_gravity="end|bottom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 

@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -33,34 +34,50 @@ public class SocketManager {
     }
 
     public Socket getSocket() {
-        if (socket==null){
-            try {
-                InetAddress ipAddress = InetAddress.getByName("192.168.0.124");
-                socket = new Socket(ipAddress, 12346);
-                socket.setSoTimeout(10000);
-                Log.e("socket",socket.toString());
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        synchronized (this){
+            if (socket==null){
+                try {
+//                192.168.0.103  11312
+//                    InetSocketAddress ipAddress = new InetSocketAddress("192.168.0.103",11312);
+                    InetSocketAddress ipAddress = new InetSocketAddress("192.168.0.124",12345);
+                    socket = new Socket();
+                    socket.connect(ipAddress,10000);
+//                socket.setSoTimeout(10000);
+                    Log.e("socket",socket.toString());
+                } catch (UnknownHostException e) {
 
-        return socket;
+//                    e.printStackTrace();
+                    Log.e("UnknownHostException","UnknownHostException:"+e.getMessage());
+                    socket = null;
+//                    release();
+                } catch (IOException e) {
+//                    e.printStackTrace();
+                    Log.e("IOException","IOException:"+e.getMessage());
+                    socket = null;
+//                    release();
+                }
+            }
+            return socket;
+        }
     }
 
+    /**
+     * 发送消息
+     *
+     * @param socket
+     * @param message
+     */
     public void sendReceiveTcpMsg(Socket socket, String message) {
         Log.e("message",message);
         mSocketDisposable = Observable.create((ObservableOnSubscribe<String>) e -> {
-            PrintStream writer;
+            PrintStream writer = null;
             try {
                 writer = new PrintStream(socket.getOutputStream());
-                writer.println(message.toString().getBytes("UTF-8"));
+                writer.println(message);
                 writer.flush();
             } catch (IOException es) {
                 es.printStackTrace();
             }
-
             e.onComplete();
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -68,17 +85,26 @@ public class SocketManager {
                 .subscribe();
     }
 
+    /**
+     * 接收消息
+     *
+     * @param socket
+     */
     public void startReceiveTcpMsg(Socket socket) {
         mSocketDisposable = Observable.create((ObservableOnSubscribe<String>) e -> {
             try {
 
                 InputStream in = socket.getInputStream();
                 String str = "ok";
-                int len = 0;
                 byte[] buffer = new byte[1024];
-                while ((len = in.read(buffer)) != -1) {
+                int len = in.read(buffer);
+
+                while (len != -1) {
                     e.onNext(new String(buffer, 0, len, "UTF-8"));
 //                    mReceiveCallBack.receiveMsg(new String(buffer, 0, len, "UTF-8"));
+                }
+                if (len==-1){
+                    release();
                 }
             } catch (IOException es) {
                 // TODO Auto-generated catch block

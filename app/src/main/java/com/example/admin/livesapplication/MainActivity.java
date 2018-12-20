@@ -16,6 +16,7 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 import com.example.admin.livesapplication.callback.OnSocketReceiveCallBack;
+import com.gcssloop.widget.RockerView;
 import com.google.gson.Gson;
 import com.pili.pldroid.player.AVOptions;
 import com.pili.pldroid.player.PLOnImageCapturedListener;
@@ -30,7 +31,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 @SuppressLint("CheckResult")
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, PLOnImageCapturedListener, View.OnTouchListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, RockerView.RockerListener {
 
     private PLVideoTextureView mVideoView1;
     private PLVideoTextureView mVideoView2;
@@ -38,6 +39,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText urls2;
     private SocketManager socketManager;
     private Gson gson = new Gson();
+    private boolean isMove;
+    private int action=-1;
+    private ImageView ivIcon;
+    private Switch auto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,23 +59,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 初始化控件
      */
     private void initView() {
-
-
+        RockerView rockerView = findViewById(R.id.rocker);
+        rockerView.setListener(this);
         mVideoView1 = findViewById(R.id.PLVideoView1);
         mVideoView2 = findViewById(R.id.PLVideoTextureView);
         urls = findViewById(R.id.url);
         urls2 = findViewById(R.id.url2);
         Button up = findViewById(R.id.btn_up);
-        Button down = findViewById(R.id.btn_down);
-        Button left = findViewById(R.id.btn_left);
-        Button right = findViewById(R.id.btn_right);
-
         Button play = findViewById(R.id.play);
         Button play2 = findViewById(R.id.play2);
 
-        ImageView ivIcon = findViewById(R.id.ivIcon);
+        ivIcon = findViewById(R.id.ivIcon);
 
-        Switch auto = findViewById(R.id.auto);
+        auto = findViewById(R.id.auto);
         auto.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 sendModeChangeMessage(1001, 1);
@@ -80,18 +81,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this, "自动:" + DeviceMessaheUtils.getModeChangeMessage(1002, 0), Toast.LENGTH_SHORT).show();
             }
         });
-//        ivIcon.setImageBitmap();
+
         socketManager = new SocketManager(callBack);
-//        up.setOnClickListener(this);
-//        down.setOnClickListener(this);
-//        left.setOnClickListener(this);
-//        right.setOnClickListener(this);
+        up.setOnClickListener(this);
         play.setOnClickListener(this);
         play2.setOnClickListener(this);
-        up.setOnTouchListener(this);
-        down.setOnTouchListener(this);
-        left.setOnTouchListener(this);
-        right.setOnTouchListener(this);
     }
 
     /**
@@ -165,91 +159,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mVideoView2.setVideoPath(url2);
                 mVideoView2.start();
                 break;
-        }
-    }
-
-    @Override
-    public void onImageCaptured(byte[] bytes) {
-        // TODO: 2018/12/18 图片的byte数组
-//        BitmapFactory.Options options= new BitmapFactory.Options();
-        if (bytes != null) {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-        }
-//            if (opts != null)
-//                return BitmapFactory.decodeByteArray(bytes, 0, bytes.length,
-//                        opts);
-//            else
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        switch (v.getId()) {
             case R.id.btn_up:
-                getAction(event.getAction(), "up");
+                Log.e("click","click"+mVideoView1.getRtmpVideoTimestamp());
+//                mVideoView1.captureImage(mVideoView1.getRtmpVideoTimestamp());
+                Bitmap bitmap = mVideoView1.getTextureView().getBitmap();
+                ivIcon.setImageBitmap(bitmap);
                 break;
-            case R.id.btn_down:
-                getAction(event.getAction(), "down");
-                break;
-            case R.id.btn_left:
-                getAction(event.getAction(), "left");
-                break;
-            case R.id.btn_right:
-                getAction(event.getAction(), "right");
-                break;
-        }
-        return true;
-    }
-
-    private void getAction(int action, String key) {
-        Log.e("action", "action:" + action);
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-//                sendDownMessage(key);
-//                break;
-            case MotionEvent.ACTION_MOVE:
-                sendDownMessage(key);
-                break;
-            case MotionEvent.ACTION_UP:
-                sendUpMessage(key);
-                break;
-//
-        }
-    }
-
-    private void sendDownMessage(String key) {
-        if (key.equals("up")) {
-            Log.e("up", "up down");
-            sendMoveMessage(1);
-        } else if (key.equals("down")) {
-            Log.e("down", "down down");
-            sendMoveMessage(5);
-        } else if (key.equals("left")) {
-            Log.e("left", "left down");
-            sendMoveMessage(2);
-        } else if (key.equals("right")) {
-            Log.e("right", "right down");
-            sendMoveMessage(3);
-        }
-    }
-
-    private void sendUpMessage(String key) {
-        if (key.equals("up")) {
-            Log.e("up", "up up");
-        } else if (key.equals("down")) {
-            Log.e("down", "down up");
-        } else if (key.equals("left")) {
-            Log.e("left", "left up");
-        } else if (key.equals("right")) {
-            Log.e("right", "right up");
         }
     }
 
     private void sendMoveMessage(int action) {
+
         Observable.create((ObservableOnSubscribe<Socket>) e -> {
             Socket socket = socketManager.getSocket();
-
-            e.onNext(socket);
+            if (socket!=null)
+                e.onNext(socket);
             e.onComplete();
         }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
@@ -267,7 +191,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void sendModeChangeMessage(int type, int action) {
         Observable.create((ObservableOnSubscribe<Socket>) e -> {
             Socket socket = socketManager.getSocket();
-            e.onNext(socket);
+            if (socket!=null)
+                e.onNext(socket);
             e.onComplete();
         }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
@@ -281,6 +206,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
     }
 
+    /**
+     * 回调
+     */
     OnSocketReceiveCallBack callBack = msg -> {
         Log.e("msg", msg);
         Result result = gson.fromJson(msg, Result.class);
@@ -296,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             if (result.getType() == 1002) {
                 if (data != null && data.getResult().equals("ok")) {
+
                     Toast.makeText(MainActivity.this, "切换自动模式成功", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(MainActivity.this, "切换自动模式失败", Toast.LENGTH_SHORT).show();
@@ -307,10 +236,74 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(MainActivity.this, "发送移动命令成功", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(MainActivity.this, "发送移动命令失败", Toast.LENGTH_SHORT).show();
+                    isMove = false;
                 }
             }
         }
 
     };
+
+    /**
+     *
+     * 摇杆监听回调
+     * @param eventType 事件类型
+     * @param currentAngle 当前角度
+     * @param currentDistance 当前距离
+     */
+    @Override
+    public void callback(int eventType, int currentAngle, float currentDistance) {
+        switch (eventType){
+            case RockerView.EVENT_ACTION:
+                // 触摸事件回调
+                Log.e("EVENT_ACTION-------->", "angle="+currentAngle+" - distance"+currentDistance);
+                if (currentAngle!=-1&&currentDistance!=0.0){
+                    isMove = true;
+                    if (currentAngle<23||currentAngle>=337){
+//                        右
+                        action=3;
+                    }
+                    if (currentAngle>=23&&currentAngle<68){
+//                        右前
+                        action=3;
+                    }
+                    if (currentAngle>=68&&currentAngle<113){
+//                        前
+                        action=1;
+                    }
+                    if (currentAngle>=113&&currentAngle<158){
+//                        左前
+                        action=2;
+                    }
+                    if (currentAngle>=158&&currentAngle<203){
+//                        左
+                        action=2;
+                    }
+                    if (currentAngle>=203&&currentAngle<248){
+//                        左后
+                        action=4;
+                    }
+                    if (currentAngle>=248&&currentAngle<293){
+//                        后
+                        action=5;
+                    }
+                    if (currentAngle>=293&&currentAngle<337){
+//                        右后
+                        action=4;
+                    }
+                }else {
+                    isMove = false;
+                }
+
+                break;
+            case RockerView.EVENT_CLOCK:
+                if (isMove&&action!=-1){
+                    sendMoveMessage(action);
+                    Log.e("EVENT_CLOCK", "angle="+currentAngle+" - distance"+currentDistance);
+                }
+
+                // 定时回调
+                break;
+        }
+    }
 
 }

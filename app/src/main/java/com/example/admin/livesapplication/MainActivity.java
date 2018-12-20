@@ -1,8 +1,12 @@
 package com.example.admin.livesapplication;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,7 +26,12 @@ import com.pili.pldroid.player.AVOptions;
 import com.pili.pldroid.player.PLOnImageCapturedListener;
 import com.pili.pldroid.player.widget.PLVideoTextureView;
 import com.pili.pldroid.player.widget.PLVideoView;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 
 import io.reactivex.Observable;
@@ -48,9 +57,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         initView();
-        initPlayer();
+        new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE).subscribe(aBoolean -> {
+            initPlayer();
+        });
+
 //        rtmp://live.hkstv.hk.lxdns.com/live/hks2
 //        rtmp://192.168.0.149:1935/live
     }
@@ -163,7 +174,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.e("click","click"+mVideoView1.getRtmpVideoTimestamp());
 //                mVideoView1.captureImage(mVideoView1.getRtmpVideoTimestamp());
                 Bitmap bitmap = mVideoView1.getTextureView().getBitmap();
-                ivIcon.setImageBitmap(bitmap);
+                saveImg(bitmap,mVideoView1.getRtmpVideoTimestamp()+".jpg");
+
+//                ivIcon.setImageBitmap(bitmap);
                 break;
         }
     }
@@ -304,6 +317,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // 定时回调
                 break;
         }
+    }
+    public static final String GAME_PHOTO_DIR = Environment.getExternalStorageDirectory() +
+            File.separator + "benbaba" + File.separator + "Lives" + File.separator + "photo";
+    /**
+     * @param bitmap
+     * @param fileName
+     */
+    public File saveImg(Bitmap bitmap, String fileName) {
+        File dir = new File(GAME_PHOTO_DIR);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File file = new File(GAME_PHOTO_DIR, fileName);
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+            Toast.makeText(MainActivity.this,"保存截图成功.",Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            Uri uri = Uri.fromFile(file);
+            intent.setData(uri);
+            this.sendBroadcast(intent);
+
+            return file;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:rocker="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -68,6 +69,8 @@
         <com.gcssloop.widget.RockerView
             android:id="@+id/rocker"
             android:layout_gravity="bottom|start"
+            rocker:area_radius="45dp"
+            rocker:rocker_radius="15dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
@@ -100,14 +103,6 @@
                 <!--android:layout_height="match_parent"-->
                 <!--android:layout_gravity="center" />-->
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/ivIcon"
-            android:src="@mipmap/ic_launcher"
-            android:layout_gravity="end|bottom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
 
     </FrameLayout>
 

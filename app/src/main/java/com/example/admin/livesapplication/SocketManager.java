@@ -38,8 +38,8 @@ public class SocketManager {
             if (socket==null){
                 try {
 //                192.168.0.103  11312
-//                    InetSocketAddress ipAddress = new InetSocketAddress("192.168.0.103",11312);
-                    InetSocketAddress ipAddress = new InetSocketAddress("192.168.0.124",12345);
+                    InetSocketAddress ipAddress = new InetSocketAddress("192.168.0.103",11312);
+//                    InetSocketAddress ipAddress = new InetSocketAddress("192.168.0.124",12345);
                     socket = new Socket();
                     socket.connect(ipAddress,10000);
 //                socket.setSoTimeout(10000);
@@ -110,7 +110,8 @@ public class SocketManager {
                 // TODO Auto-generated catch block
                 es.printStackTrace();
             }
-        }).subscribeOn(Schedulers.io())
+        })
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(msg -> {
                     if (mReceiveCallBack != null) {

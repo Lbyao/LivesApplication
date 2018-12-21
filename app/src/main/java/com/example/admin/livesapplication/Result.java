@@ -41,13 +41,13 @@ public class Result {
          * result : ok
          */
 
-        private String result;
+        private int result;
 
-        public String getResult() {
+        public int getResult() {
             return result;
         }
 
-        public void setResult(String result) {
+        public void setResult(int result) {
             this.result = result;
         }
 

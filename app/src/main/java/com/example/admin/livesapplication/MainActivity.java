@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initView() {
         RockerView rockerView = findViewById(R.id.rocker);
         rockerView.setListener(this);
-        rockerView.setCallbackCycle(1000);
+        rockerView.setCallbackCycle(200);
         mVideoView1 = findViewById(R.id.PLVideoView1);
         mVideoView2 = findViewById(R.id.PLVideoTextureView);
         urls = findViewById(R.id.url);
@@ -211,9 +211,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (socket != null) {
                         if (isOk) {
                             socketManager.sendReceiveTcpMsg(socket, DeviceMessaheUtils.getMoveMessage(action));
+                            socketManager.startReceiveTcpMsg(socket);
                             isOk = false;
                         }
-                        socketManager.startReceiveTcpMsg(socket);
                     } else {
                         Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     }

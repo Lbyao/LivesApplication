@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.admin.livesapplication.callback.OnSocketReceiveCallBack;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,6 +29,7 @@ public class SocketManager {
     private Socket socket;
     private Disposable mSocketDisposable;
     private io.socket.client.Socket socket1;
+    private String s;
 
     public SocketManager(OnSocketReceiveCallBack callBack) {
         this.mReceiveCallBack = callBack;
@@ -42,7 +44,6 @@ public class SocketManager {
 //                    InetSocketAddress ipAddress = new InetSocketAddress("192.168.0.124",12345);
                     socket = new Socket();
                     socket.connect(ipAddress,10000);
-//                socket.setSoTimeout(10000);
                     Log.e("socket",socket.toString());
                 } catch (UnknownHostException e) {
 
@@ -93,19 +94,16 @@ public class SocketManager {
     public void startReceiveTcpMsg(Socket socket) {
         mSocketDisposable = Observable.create((ObservableOnSubscribe<String>) e -> {
             try {
-
+                s = null;
                 InputStream in = socket.getInputStream();
-                String str = "ok";
-                byte[] buffer = new byte[1024];
-                int len = in.read(buffer);
 
-                while (len != -1) {
-                    e.onNext(new String(buffer, 0, len, "UTF-8"));
-//                    mReceiveCallBack.receiveMsg(new String(buffer, 0, len, "UTF-8"));
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = in.read(buffer)) != -1) {
+                    s = new String(buffer, 0, len, "UTF-8");
+                    e.onNext(s);
                 }
-                if (len==-1){
-                    release();
-                }
+
             } catch (IOException es) {
                 // TODO Auto-generated catch block
                 es.printStackTrace();

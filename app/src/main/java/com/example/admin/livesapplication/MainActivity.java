@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SocketManager socketManager;
     private Gson gson = new Gson();
     private boolean isMove;
-    private int action=-1;
-    private boolean isOk=true;
+    private int action = -1;
+    private boolean isOk = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mVideoView2.stopPlayback();
         }
 
-        if (socketManager!=null){
+        if (socketManager != null) {
             socketManager.release();
         }
     }
@@ -167,13 +167,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mVideoView2.start();
                 break;
             case R.id.btn_up:
-                Log.e("click","click"+mVideoView1.getRtmpVideoTimestamp());
+                Log.e("click", "click" + mVideoView1.getRtmpVideoTimestamp());
 //                mVideoView1.captureImage(mVideoView1.getRtmpVideoTimestamp());
-                if (mVideoView1.getRtmpVideoTimestamp()!=-1){
+                if (mVideoView1.getRtmpVideoTimestamp() != -1) {
                     Bitmap bitmap = mVideoView1.getTextureView().getBitmap();
-                    saveImg(bitmap,mVideoView1.getRtmpVideoTimestamp()+".jpg");
-                }else {
-                    Toast.makeText(MainActivity.this,"请先播放视频",Toast.LENGTH_SHORT).show();
+                    saveImg(bitmap, mVideoView1.getRtmpVideoTimestamp() + ".jpg");
+                } else {
+                    Toast.makeText(MainActivity.this, "请先播放视频", Toast.LENGTH_SHORT).show();
                 }
 
 //                ivIcon.setImageBitmap(bitmap);
@@ -184,8 +184,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         super.onPause();
-        if (mVideoView1.isPlaying()){
-            Log.e("isPlaying","isPlaying");
+        if (mVideoView1.isPlaying()) {
+            Log.e("isPlaying", "isPlaying");
             mVideoView1.pause();
         }
     }
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        if (mVideoView1.getPlayerState()== PlayerState.PAUSED){
+        if (mVideoView1.getPlayerState() == PlayerState.PAUSED) {
             mVideoView1.start();
         }
     }
@@ -202,16 +202,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Observable.create((ObservableOnSubscribe<Socket>) e -> {
             Socket socket = socketManager.getSocket();
-            if (socket!=null)
+            if (socket != null)
                 e.onNext(socket);
             e.onComplete();
         }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(socket -> {
                     if (socket != null) {
-                        if (isOk){
+                        if (isOk) {
                             socketManager.sendReceiveTcpMsg(socket, DeviceMessaheUtils.getMoveMessage(action));
-                            isOk=false;
+                            isOk = false;
                         }
                         socketManager.startReceiveTcpMsg(socket);
                     } else {
@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void sendModeChangeMessage(int type, int action) {
         Observable.create((ObservableOnSubscribe<Socket>) e -> {
             Socket socket = socketManager.getSocket();
-            if (socket!=null)
+            if (socket != null)
                 e.onNext(socket);
             e.onComplete();
         }).observeOn(AndroidSchedulers.mainThread())
@@ -244,21 +244,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     OnSocketReceiveCallBack callBack = msg -> {
         Log.e("msg", msg);
-        Toast.makeText(MainActivity.this,"msg:"+msg,Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, "msg:" + msg, Toast.LENGTH_SHORT).show();
         Result result = gson.fromJson(msg, Result.class);
         if (result != null) {
             Result.DataBean data = result.getData();
 //        Log.e("result",result.toString());
             if (result.getType() == 1001) {
 //                data.getResult().equals("ok")
-                if (data != null && data.getResult()==1) {
+                if (data != null && data.getResult() == 1) {
                     Toast.makeText(MainActivity.this, "切换手动模式成功", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(MainActivity.this, "切换手动模式失败", Toast.LENGTH_SHORT).show();
                 }
             }
             if (result.getType() == 1002) {
-                if (data != null && data.getResult()==1) {
+                if (data != null && data.getResult() == 1) {
 
                     Toast.makeText(MainActivity.this, "切换自动模式成功", Toast.LENGTH_SHORT).show();
                 } else {
@@ -267,88 +267,90 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             if (result.getType() == 1003) {
-                if (data != null && data.getResult()==1) {
-                    Log.e("move","move");
+                if (data != null && data.getResult() == 1) {
+                    Log.e("move", "move");
 //                    Toast.makeText(MainActivity.this, "发送移动命令成功", Toast.LENGTH_SHORT).show();
                     isOk = true;
                 } else {
-                    Log.e("move","move");
+                    Log.e("move", "move");
 //                    Toast.makeText(MainActivity.this, "发送移动命令失败", Toast.LENGTH_SHORT).show();
                     isMove = false;
                 }
             }
-        }else {
-            Log.e("msg","msg:"+msg);
+        } else {
+            Log.e("msg", "msg:" + msg);
         }
 
     };
 
     /**
-     *
      * 摇杆监听回调
-     * @param eventType 事件类型
-     * @param currentAngle 当前角度
+     *
+     * @param eventType       事件类型
+     * @param currentAngle    当前角度
      * @param currentDistance 当前距离
      */
     @Override
     public void callback(int eventType, int currentAngle, float currentDistance) {
-        switch (eventType){
+        switch (eventType) {
             case RockerView.EVENT_ACTION:
                 // 触摸事件回调
 //                Log.e("EVENT_ACTION-------->", "angle="+currentAngle+" - distance"+currentDistance);
-                if (currentAngle!=-1&&currentDistance!=0.0){
+                if (currentAngle != -1 && currentDistance != 0.0) {
                     isMove = true;
-                    if (currentAngle<23||currentAngle>=337){
+                    if (currentAngle >= 337 || currentAngle < 23) {
 //                        右
-                        action=3;
+                        action = 3;
                     }
-                    if (currentAngle>=23&&currentAngle<68){
+                    if (currentAngle >= 23 && currentAngle < 68) {
 //                        右前
-                        action=3;
+                        action = 3;
                     }
-                    if (currentAngle>=68&&currentAngle<113){
+                    if (currentAngle >= 68 && currentAngle < 113) {
 //                        前
-                        action=1;
+                        action = 1;
                     }
-                    if (currentAngle>=113&&currentAngle<158){
+                    if (currentAngle >= 113 && currentAngle < 158) {
 //                        左前
-                        action=2;
+                        action = 2;
                     }
-                    if (currentAngle>=158&&currentAngle<203){
+                    if (currentAngle >= 158 && currentAngle < 203) {
 //                        左
-                        action=2;
+                        action = 2;
                     }
-                    if (currentAngle>=203&&currentAngle<248){
+                    if (currentAngle >= 203 && currentAngle < 248) {
 //                        左后
-                        action=4;
+                        action = 4;
                     }
-                    if (currentAngle>=248&&currentAngle<293){
+                    if (currentAngle >= 248 && currentAngle < 293) {
 //                        后
-                        action=5;
+                        action = 5;
                     }
-                    if (currentAngle>=293&&currentAngle<337){
+                    if (currentAngle >= 293 && currentAngle < 337) {
 //                        右后
-                        action=4;
+                        action = 4;
                     }
-                }else {
+                } else {
                     isMove = false;
                 }
 
                 break;
             case RockerView.EVENT_CLOCK:
-                if (isMove&&action!=-1){
+                if (isMove && action != -1) {
                     sendMoveMessage(action);
-                    Log.e("EVENT_CLOCK", "angle="+currentAngle+" - distance"+currentDistance);
+                    Log.e("EVENT_CLOCK", "angle=" + currentAngle + " - distance" + currentDistance);
                 }
 
                 // 定时回调
                 break;
         }
     }
+
     public static final String GAME_PHOTO_DIR = Environment.getExternalStorageDirectory() +
             File.separator + "benbaba" + File.separator + "Lives" + File.separator + "photo";
+
     /**
-     * @param bitmap 图片bitmap
+     * @param bitmap   图片bitmap
      * @param fileName 文件名
      */
     public File saveImg(Bitmap bitmap, String fileName) {
@@ -363,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.flush();
             out.close();
-            Toast.makeText(MainActivity.this,"保存图片成功.",Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "保存图片成功.", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
             Uri uri = Uri.fromFile(file);
             intent.setData(uri);
